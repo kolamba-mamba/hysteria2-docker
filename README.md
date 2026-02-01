@@ -25,7 +25,7 @@ docker-compose up -d
 
 ## Параметры подключения
 **Шаблон URI:**
-`hysteria2://<LOGIN>:<PASSWORD>@<SERVER_IP>:4433/?obfs=salamander&obfs-password=h2_obfs_SecretKey_5582&sni=bing.com&insecure=1#Hysteria2`
+`hysteria2://<LOGIN>:<PASSWORD>@<SERVER_IP>:4433/?sni=bing.com&obfs=salamander&obfs-password=h2_obfs_SecretKey_5582&insecure=1#Hysteria2`
 
 **Пример для user1:**
-`hysteria2://user1:h2_auth_StrongPass_9921@<SERVER_IP>:4433/?obfs=salamander&obfs-password=h2_obfs_SecretKey_5582&sni=bing.com&insecure=1#User1`
+`hysteria2://user1:h2_auth_StrongPass_9921@192.168.1.10:4433/?sni=bing.com&obfs=salamander&obfs-password=h2_obfs_SecretKey_5582&insecure=1#User1`
