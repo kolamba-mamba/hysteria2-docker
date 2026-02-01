@@ -1,0 +1,29 @@
+# Адрес и порт для прослушивания входящих соединений (UDP)
+listen: :4433
+
+# Настройки шифрования TLS (пути внутри контейнера)
+tls:
+  cert: /etc/hysteria/certs/server.crt
+  key: /etc/hysteria/certs/server.key
+
+# Механизм аутентификации пользователей
+# Тип 'userpass' позволяет задавать индивидуальные логины и пароли
+auth:
+  type: userpass
+  userpass:
+    # Формат: логин: "пароль"
+    user1: "h2_auth_StrongPass_9921"
+    # user2: "password_2"
+
+# Настройка обфускации (Salamander)
+obfs:
+  type: salamander
+  salamander:
+    password: "h2_obfs_SecretKey_5582"
+
+# Маскировка сервера под легитимный веб-ресурс
+masquerade:
+  type: proxy
+  proxy:
+    url: https://www.bing.com
+    rewriteHost: true

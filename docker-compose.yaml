@@ -1,0 +1,20 @@
+services:
+  hysteria:
+    # Использование официального образа Hysteria
+    image: tobyxdd/hysteria:latest
+    container_name: hysteria2
+    
+    # Автоматический перезапуск контейнера (кроме явной остановки)
+    restart: unless-stopped
+    
+    # Режим сети "host" для максимальной производительности UDP
+    # Исключает накладные расходы NAT Docker
+    network_mode: "host"
+    
+    # Монтирование конфигурации и сертификатов внутрь контейнера
+    volumes:
+      - ./config.yaml:/etc/hysteria/config.yaml:ro # Конфигурация (только чтение)
+      - ./hysteria/certs:/etc/hysteria/certs:ro    # Сертификаты (только чтение)
+    
+    # Команда запуска сервера с указанием пути к конфигу
+    command: ["server", "--config", "/etc/hysteria/config.yaml"]
