@@ -1,0 +1,12 @@
+# Игнорируем все сертификаты и ключи
+hysteria/certs/*
+!hysteria/certs/.gitkeep
+
+# Игнорируем данные ACME и кеш сервера
+hysteria/data/*
+!hysteria/data/.gitkeep
+
+# Игнорируем временные файлы и логи
+*.log
+.DS_Store
+__pycache__/
