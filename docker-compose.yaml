@@ -11,10 +11,11 @@ services:
     # Исключает накладные расходы NAT Docker
     network_mode: "host"
     
-    # Монтирование конфигурации и сертификатов внутрь контейнера
+    # Монтирование конфигурации и данных внутрь контейнера
     volumes:
       - ./config.yaml:/etc/hysteria/config.yaml:ro # Конфигурация (только чтение)
       - ./hysteria/certs:/etc/hysteria/certs:ro    # Сертификаты (только чтение)
+      - ./hysteria/data:/var/lib/hysteria          # Кеш ACME и данные сервера
     
     # Команда запуска сервера с указанием пути к конфигу
     command: ["server", "--config", "/etc/hysteria/config.yaml"]
