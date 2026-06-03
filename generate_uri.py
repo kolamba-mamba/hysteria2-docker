@@ -1,14 +1,27 @@
 import re
 import os
+import urllib.request
+
+def get_public_ip():
+    try:
+        return urllib.request.urlopen('https://ifconfig.me', timeout=5).read().decode('utf-8').strip()
+    except:
+        return None
 
 def parse_config(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # Извлечение адреса (IP или домена) из секции ACME
-    # Ищем формат: - "адрес"
+    # Проверяем, активен ли блок ACME (не закомментирован)
+    acme_active = False
+    for line in content.splitlines():
+        if line.strip().startswith('acme:'):
+            acme_active = True
+            break
+
+    # Извлечение домена из ACME
     addr_match = re.search(r'acme:\s+domains:\s+-\s+"([^"]+)"', content)
-    server_addr = addr_match.group(1) if addr_match else "YOUR_IP_OR_DOMAIN"
+    domain = addr_match.group(1) if addr_match else None
     
     # Извлечение порта
     port_match = re.search(r'listen: :(\d+)', content)
@@ -29,35 +42,43 @@ def parse_config(file_path):
         for u, p in user_matches:
             users.append((u, p))
             
-    return server_addr, port, obfs_type, obfs_pass, users
+    return acme_active, domain, port, obfs_type, obfs_pass, users
 
 def generate():
     config_path = 'config.yaml'
     if not os.path.exists(config_path):
-        print(f"Ошибка: файл {config_path} не найден.")
-        return
+        # Пытаемся найти SNI в блоке tls или комментариях (по умолчанию www.bing.com)
+        sni_match = re.search(r'sni:\s+"?([^" \n]+)"?', content)
+        sni = sni_match.group(1) if sni_match else "www.bing.com"
 
-    addr, port, obfs_type, obfs_pass, users = parse_config(config_path)
-    
-    if addr == "ВАШ_IP_ИЛИ_ДОМЕН":
-        print("ВНИМАНИЕ: В config.yaml не указан реальный IP адрес.")
-        print("Пожалуйста, замените 'ВАШ_IP_ИЛИ_ДОМЕН' на ваш реальный IP и запустите скрипт снова.\n")
+        return acme_active, domain, port, obfs_type, obfs_pass, users, sni
 
-    print(f"--- ССЫЛКИ ДЛЯ СЕРВЕРА: {addr} ---\n")
+        def generate():
+        ...
+        acme_active, domain, port, obfs_type, obfs_pass, users, config_sni = parse_config(config_path)
+
+        if acme_active:
+            addr = domain if domain and domain != "ВАШ_ДОМЕН" else "ВАШ_ДОМЕН"
+            sni = addr
+            is_insecure = False
+            print(f"--- РЕЖИМ: ACME (Домен) ---")
+        else:
+            # Пытаемся получить IP сервера
+            public_ip = get_public_ip()
+            addr = public_ip if public_ip else "ВАШ_IP"
+            # Для самоподписных используем найденный SNI (или дефолт)
+            sni = config_sni 
+            is_insecure = True
+            print(f"--- РЕЖИМ: Самоподписной (IP) ---")
+    print(f"Адрес сервера: {addr}\n")
     
     for user, password in users:
-        # В Hysteria 2 SNI обычно совпадает с адресом сервера
-        uri = f"hysteria2://{user}:{password}@{addr}:{port}/?sni={addr}"
+        uri = f"hysteria2://{user}:{password}@{addr}:{port}/?sni={sni}"
         
         if obfs_type:
             uri += f"&obfs={obfs_type}&obfs-password={obfs_pass}"
         
-        # Проверяем, активен ли блок ACME (не закомментирован)
-        with open(config_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            acme_active = any(line.strip().startswith('acme:') for line in lines)
-            
-        if not acme_active:
+        if is_insecure:
             uri += "&insecure=1"
             
         uri += f"#{user}_Hysteria2"
