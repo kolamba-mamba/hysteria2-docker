@@ -3,10 +3,14 @@ import os
 import urllib.request
 
 def get_public_ip():
-    try:
-        return urllib.request.urlopen('https://ifconfig.me', timeout=5).read().decode('utf-8').strip()
-    except:
-        return None
+    # Используем сервис, который принудительно возвращает IPv4
+    services = ['https://api4.ipify.org', 'https://v4.ident.me', 'https://checkip.amazonaws.com']
+    for service in services:
+        try:
+            return urllib.request.urlopen(service, timeout=5).read().decode('utf-8').strip()
+        except:
+            continue
+    return None
 
 def parse_config(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
