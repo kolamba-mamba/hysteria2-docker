@@ -81,7 +81,7 @@ def generate():
         if is_insecure:
             uri += "&insecure=1"
             
-        uri += f"#{user}_Hysteria2"
+        uri += f"#{user}"
         
         print(f"Пользователь: {user}")
         print(f"URI: {uri}\n")
