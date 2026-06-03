@@ -42,34 +42,34 @@ def parse_config(file_path):
         for u, p in user_matches:
             users.append((u, p))
             
-    return acme_active, domain, port, obfs_type, obfs_pass, users
+    # Пытаемся найти SNI в блоке tls или комментариях (по умолчанию www.bing.com)
+    sni_match = re.search(r'sni:\s+"?([^" \n]+)"?', content)
+    sni = sni_match.group(1) if sni_match else "www.bing.com"
+            
+    return acme_active, domain, port, obfs_type, obfs_pass, users, sni
 
 def generate():
     config_path = 'config.yaml'
     if not os.path.exists(config_path):
-        # Пытаемся найти SNI в блоке tls или комментариях (по умолчанию www.bing.com)
-        sni_match = re.search(r'sni:\s+"?([^" \n]+)"?', content)
-        sni = sni_match.group(1) if sni_match else "www.bing.com"
+        print(f"Ошибка: файл {config_path} не найден.")
+        return
 
-        return acme_active, domain, port, obfs_type, obfs_pass, users, sni
+    acme_active, domain, port, obfs_type, obfs_pass, users, config_sni = parse_config(config_path)
+    
+    if acme_active:
+        addr = domain if domain and domain != "ВАШ_ДОМЕН" else "ВАШ_ДОМЕН"
+        sni = addr
+        is_insecure = False
+        print(f"--- РЕЖИМ: ACME (Домен) ---")
+    else:
+        # Пытаемся получить IP сервера
+        public_ip = get_public_ip()
+        addr = public_ip if public_ip else "ВАШ_IP"
+        # Для самоподписных используем найденный SNI (или дефолт)
+        sni = config_sni 
+        is_insecure = True
+        print(f"--- РЕЖИМ: Самоподписной (IP) ---")
 
-        def generate():
-        ...
-        acme_active, domain, port, obfs_type, obfs_pass, users, config_sni = parse_config(config_path)
-
-        if acme_active:
-            addr = domain if domain and domain != "ВАШ_ДОМЕН" else "ВАШ_ДОМЕН"
-            sni = addr
-            is_insecure = False
-            print(f"--- РЕЖИМ: ACME (Домен) ---")
-        else:
-            # Пытаемся получить IP сервера
-            public_ip = get_public_ip()
-            addr = public_ip if public_ip else "ВАШ_IP"
-            # Для самоподписных используем найденный SNI (или дефолт)
-            sni = config_sni 
-            is_insecure = True
-            print(f"--- РЕЖИМ: Самоподписной (IP) ---")
     print(f"Адрес сервера: {addr}\n")
     
     for user, password in users:
