@@ -1,6 +1,11 @@
 import re
 import os
 import urllib.request
+import sys
+
+# Устанавливаем UTF-8 для корректного вывода кириллицы в Windows-терминале
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 def get_public_ip():
     # Используем сервис, который принудительно возвращает IPv4
@@ -42,9 +47,13 @@ def parse_config(file_path):
     users = []
     userpass_section = re.search(r'userpass:\s+(.*?)(?=\n\w+:|\Z)', content, re.DOTALL)
     if userpass_section:
-        user_matches = re.findall(r'(\w+):\s+"([^"]+)"', userpass_section.group(1))
-        for u, p in user_matches:
-            users.append((u, p))
+        for line in userpass_section.group(1).splitlines():
+            stripped = line.strip()
+            if stripped.startswith('#') or not stripped:
+                continue
+            user_match = re.match(r'(\w+):\s+"([^"]+)"', stripped)
+            if user_match:
+                users.append(user_match.groups())
             
     # Пытаемся найти SNI в блоке tls или комментариях (по умолчанию www.bing.com)
     sni_match = re.search(r'sni:\s+"?([^" \n]+)"?', content)
